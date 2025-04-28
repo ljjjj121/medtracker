@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedTrack - Medicine Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #a5b4fc;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --success: #10b981;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        header {
+            text-align: center;
+            padding: 1.5rem 0;
+            background-color: var(--primary);
+            color: white;
+            margin-bottom: 1.5rem;
+            border-radius: 0 0 16px 16px;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            font-family: inherit;
+            font-size: 0.9375rem;
+        }
+
+        button {
+            padding: 0.875rem 1.5rem;
+            border-radius: 12px;
+            border: none;
+            background-color: var(--primary);
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #4338ca;
+        }
+
+        .medicine-list {
+            margin-top: 1.5rem;
+        }
+
+        .medicine-card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--primary);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+            position: relative;
+        }
+
+        .medicine-name {
+            font-weight: 600;
+            font-size: 1.125rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .medicine-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+        }
+
+        .next-dose {
+            background-color: #e0e7ff;
+            color: var(--primary);
+            padding: 0.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            margin-top: 0.5rem;
+            display: inline-block;
+        }
+
+        .progress-container {
+            margin-top: 1rem;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.25rem;
+            font-size: 0.875rem;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background-color: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--primary);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .action-buttons button {
+            flex: 1;
+            padding: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .taken-btn {
+            background-color: var(--success);
+        }
+
+        .missed-btn {
+            background-color: var(--danger);
+        }
+
+        .edit-btn {
+            background-color: var(--warning);
+        }
+
+        .delete-btn {
+            background-color: var(--danger);
+        }
+
+        .reminder-active {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background-color: var(--success);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .time-selector {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .time-selector select {
+            flex: 1;
+        }
+
+        .edit-form {
+            display: none;
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #f1f5f9;
+            border-radius: 8px;
+        }
+
+        @media (max-width: 600px) {
+            .medicine-details {
+                grid-template-columns: 1fr;
+            }
+            
+            .time-selector {
+                flex-direction: column;
+            }
+            
+            .action-buttons {
+                flex-wrap: wrap;
+            }
+            
+            .action-buttons button {
+                min-width: calc(50% - 0.25rem);
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>MedTrack</h1>
+        <p>Medicine Tracker & Reminder</p>
+    </header>
+
+    <div class="container">
+        <div class="card">
+            <h2>Add New Medicine</h2>
+            <form id="medicineForm">
+                <div class="form-group">
+                    <label for="medicineName">Medicine Name</label>
+                    <input type="text" id="medicineName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="dosage">Dosage</label>
+                    <input type="text" id="dosage" placeholder="e.g., 500mg" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="frequency">Frequency</label>
+                    <select id="frequency" required>
+                        <option value="">Select frequency</option>
+                        <option value="once">Once daily</option>
+                        <option value="twice">Twice daily</option>
+                        <option value="thrice">Three times daily</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" id="timesGroup" style="display: none;">
+                    <label>Times</label>
+                    <div class="time-selector" id="timeSelector">
+                        <!-- Times will be added here based on frequency -->
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="startDate">Start Date</label>
+                    <input type="date" id="startDate" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="duration">Duration (days)</label>
+                    <input type="number" id="duration" min="1" value="7">
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="setReminder" checked> 
+                        Set reminder notifications
+                    </label>
+                </div>
+                
+                <button type="submit">Add Medicine</button>
+            </form>
+        </div>
+        
+        <div class="card">
+            <h2>Your Medications</h2>
+            <div class="medicine-list" id="medicineList">
+                <!-- Medicine cards will be added here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Medicine data storage
+        let medicines = JSON.parse(localStorage.getItem('medicines')) || [];
+        let reminderTimeouts = {};
+        let currentlyEditing = null;
+
+        // DOM elements
+        const medicineForm = document.getElementById('medicineForm');
+        const medicineList = document.getElementById('medicineList');
+        const frequencySelect = document.getElementById('frequency');
+        const timesGroup = document.getElementById('timesGroup');
+        const timeSelector = document.getElementById('timeSelector');
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set default start date to today
+            document.getElementById('startDate').valueAsDate = new Date();
+            
+            // Load existing medicines
+            renderMedicines();
+            
+            // Set up frequency change listener
+            frequencySelect.addEventListener('change', updateTimeInputs);
+            
+            // Form submission
+            medicineForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                if (currentlyEditing) {
+                    updateMedicine();
+                } else {
+                    addMedicine();
+                }
+            });
+        });
+
+        // Add new medicine
+        function addMedicine() {
+            const name = document.getElementById('medicineName').value;
+            const dosage = document.getElementById('dosage').value;
+            const frequency = document.getElementById('frequency').value;
+            const startDate = document.getElementById('startDate').value;
+            const duration = parseInt(document.getElementById('duration').value);
+            const setReminder = document.getElementById('setReminder').checked;
+            
+            // Get times based on frequency
+            let times = [];
+            if (frequency === 'custom') {
+                const timeInputs = timeSelector.querySelectorAll('input[type="time"]');
+                times = Array.from(timeInputs).map(input => input.value);
+            } else {
+                const timeCount = frequency === 'once' ? 1 : 
+                                 frequency === 'twice' ? 2 : 3;
+                for (let i = 0; i < timeCount; i++) {
+                    times.push('08:00'); // Default time
+                }
+            }
+            
+            const medicine = {
+                id: Date.now(),
+                name,
+                dosage,
+                frequency,
+                times,
+                startDate,
+                duration,
+                setReminder,
+                logs: [],
+                takenCount: 0,
+                missedCount: 0
+            };
+            
+            medicines.push(medicine);
+            saveMedicines();
+            renderMedicines();
+            setupReminders();
+            
+            // Reset form
+            resetForm();
+        }
+
+        // Update an existing medicine
+        function updateMedicine() {
+            const name = document.getElementById('medicineName').value;
+            const dosage = document.getElementById('dosage').value;
+            const frequency = document.getElementById('frequency').value;
+            const startDate = document.getElementById('startDate').value;
+            const duration = parseInt(document.getElementById('duration').value);
+            const setReminder = document.getElementById('setReminder').checked;
+            
+            // Get times based on frequency
+            let times = [];
+            if (frequency === 'custom') {
+                const timeInputs = timeSelector.querySelectorAll('input[type="time"]');
+                times = Array.from(timeInputs).map(input => input.value);
+            } else {
+                const timeCount = frequency === 'once' ? 1 : 
+                                 frequency === 'twice' ? 2 : 3;
+                for (let i = 0; i < timeCount; i++) {
+                    times.push('08:00'); // Default time
+                }
+            }
+            
+            const medicineIndex = medicines.findIndex(m => m.id === currentlyEditing);
+            if (medicineIndex !== -1) {
+                medicines[medicineIndex] = {
+                    ...medicines[medicineIndex],
+                    name,
+                    dosage,
+                    frequency,
+                    times,
+                    startDate,
+                    duration,
+                    setReminder
+                };
+                
+                saveMedicines();
+                renderMedicines();
+                setupReminders();
+                
+                // Reset form and editing state
+                resetForm();
+                currentlyEditing = null;
+            }
+        }
+
+        // Reset the form
+        function resetForm() {
+            medicineForm.reset();
+            document.getElementById('startDate').valueAsDate = new Date();
+            timesGroup.style.display = 'none';
+            document.querySelector('button[type="submit"]').textContent = 'Add Medicine';
+        }
+
+        // Update time inputs based on frequency selection
+        function updateTimeInputs() {
+            const frequency = frequencySelect.value;
+            timeSelector.innerHTML = '';
+            
+            if (frequency === 'custom') {
+                timesGroup.style.display = 'block';
+                // Add initial time input
+                addTimeInput();
+                // Add button to add more times
+                const addTimeBtn = document.createElement('button');
+                addTimeBtn.type = 'button';
+                addTimeBtn.textContent = '+ Add Time';
+                addTimeBtn.addEventListener('click', addTimeInput);
+                timeSelector.appendChild(addTimeBtn);
+            } else if (frequency === 'once' || frequency === 'twice' || frequency === 'thrice') {
+                timesGroup.style.display = 'none';
+            } else {
+                timesGroup.style.display = 'none';
+            }
+        }
+
+        // Add a time input field
+        function addTimeInput() {
+            const timeInput = document.createElement('input');
+            timeInput.type = 'time';
+            timeInput.value = '08:00';
+            timeInput.required = true;
+            timeSelector.insertBefore(timeInput, timeSelector.lastChild);
+        }
+
+        // Render all medicines
+        function renderMedicines() {
+            medicineList.innerHTML = '';
+            
+            if (medicines.length === 0) {
+                medicineList.innerHTML = '<p>No medications added yet.</p>';
+                return;
+            }
+            
+            medicines.forEach(medicine => {
+                const card = document.createElement('div');
+                card.className = 'medicine-card';
+                card.dataset.id = medicine.id;
+                
+                // Calculate progress
+                const totalDoses = calculateTotalDoses(medicine);
+                const progressPercent = totalDoses > 0 ? 
+                    Math.round((medicine.takenCount / totalDoses) * 100) : 0;
+                
+                // Calculate next dose time
+                const nextDose = getNextDoseTime(medicine);
+                const now = new Date();
+                const nextDoseTime = new Date(nextDose);
+                const isUpcoming = nextDoseTime > now;
+                
+                // Check if this medicine is being edited
+                const isEditing = currentlyEditing === medicine.id;
+                
+                card.innerHTML = `
+                    ${medicine.setReminder ? '<span class="reminder-active">Reminder Active</span>' : ''}
+                    <div class="medicine-name">${medicine.name} - ${medicine.dosage}</div>
+                    <div class="medicine-details">
+                        <div>
+                            <strong>Frequency:</strong> ${getFrequencyText(medicine.frequency, medicine.times)}
+                        </div>
+                        <div>
+                            <strong>Duration:</strong> ${medicine.duration} days
+                        </div>
+                        <div>
+                            <strong>Taken:</strong> ${medicine.takenCount} doses
+                        </div>
+                        <div>
+                            <strong>Missed:</strong> ${medicine.missedCount} doses
+                        </div>
+                    </div>
+                    ${isUpcoming ? `
+                        <div class="next-dose">
+                            Next dose: ${formatTime(nextDose)}
+                        </div>
+                    ` : ''}
+                    <div class="progress-container">
+                        <div class="progress-label">
+                            <span>Progress</span>
+                            <span>${progressPercent}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${progressPercent}%"></div>
+                        </div>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="taken-btn" data-action="taken">Taken</button>
+                        <button class="missed-btn" data-action="missed">Missed</button>
+                        <button class="edit-btn" data-action="edit">Edit</button>
+                        <button class="delete-btn" data-action="delete">Delete</button>
+                    </div>
+                    
+                    ${isEditing ? `
+                        <div class="edit-form" id="editForm-${medicine.id}">
+                            <h3>Edit Medicine</h3>
+                            <div class="form-group">
+                                <label for="editName-${medicine.id}">Medicine Name</label>
+                                <input type="text" id="editName-${medicine.id}" value="${medicine.name}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="editDosage-${medicine.id}">Dosage</label>
+                                <input type="text" id="editDosage-${medicine.id}" value="${medicine.dosage}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="editFrequency-${medicine.id}">Frequency</label>
+                                <select id="editFrequency-${medicine.id}" required>
+                                    <option value="once" ${medicine.frequency === 'once' ? 'selected' : ''}>Once daily</option>
+                                    <option value="twice" ${medicine.frequency === 'twice' ? 'selected' : ''}>Twice daily</option>
+                                    <option value="thrice" ${medicine.frequency === 'thrice' ? 'selected' : ''}>Three times daily</option>
+                                    <option value="custom" ${medicine.frequency === 'custom' ? 'selected' : ''}>Custom</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="editDuration-${medicine.id}">Duration (days)</label>
+                                <input type="number" id="editDuration-${medicine.id}" value="${medicine.duration}" min="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" id="editReminder-${medicine.id}" ${medicine.setReminder ? 'checked' : ''}> 
+                                    Set reminder notifications
+                                </label>
+                            </div>
+                            <div class="action-buttons">
+                                <button type="button" class="save-btn" data-action="save-edit">Save</button>
+                                <button type="button" class="cancel-btn" data-action="cancel-edit">Cancel</button>
+                            </div>
+                        </div>
+                    ` : ''}
+                `;
+                
+                medicineList.appendChild(card);
+                
+                // If this is the medicine being edited, set up its edit form
+                if (isEditing) {
+                    const editForm = document.getElementById(`editForm-${medicine.id}`);
+                    const editFrequency = document.getElementById(`editFrequency-${medicine.id}`);
+                    
+                    editFrequency.addEventListener('change', function() {
+                        // Update times display when frequency changes
+                        // (implementation would be similar to updateTimeInputs)
+                    });
+                    
+                    document.querySelector(`[data-action="save-edit"]`).addEventListener('click', function() {
+                        saveMedicineEdit(medicine.id);
+                    });
+                    
+                    document.querySelector(`[data-action="cancel-edit"]`).addEventListener('click', function() {
+                        cancelEdit();
+                    });
+                }
+            });
+            
+            // Add event listeners to action buttons
+            document.querySelectorAll('[data-action="taken"]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const medicineId = parseInt(this.closest('.medicine-card').dataset.id);
+                    logDose(medicineId, 'taken');
+                });
+            });
+            
+            document.querySelectorAll('[data-action="missed"]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const medicineId = parseInt(this.closest('.medicine-card').dataset.id);
+                    logDose(medicineId, 'missed');
+                });
+            });
+            
+            document.querySelectorAll('[data-action="edit"]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const medicineId = parseInt(this.closest('.medicine-card').dataset.id);
+                    startEditMedicine(medicineId);
+                });
+            });
+            
+            document.querySelectorAll('[data-action="delete"]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const medicineId = parseInt(this.closest('.medicine-card').dataset.id);
+                    deleteMedicine(medicineId);
+                });
+            });
+        }
+
+        // Start editing a medicine
+        function startEditMedicine(medicineId) {
+            currentlyEditing = medicineId;
+            const medicine = medicines.find(m => m.id === medicineId);
+            
+            if (medicine) {
+                // Populate the main form with medicine data
+                document.getElementById('medicineName').value = medicine.name;
+                document.getElementById('dosage').value = medicine.dosage;
+                document.getElementById('frequency').value = medicine.frequency;
+                document.getElementById('startDate').value = medicine.startDate;
+                document.getElementById('duration').value = medicine.duration;
+                document.getElementById('setReminder').checked = medicine.setReminder;
+                
+                // Update the time inputs if needed
+                updateTimeInputs();
+                
+                // Change the form button to say "Update"
+                document.querySelector('button[type="submit"]').textContent = 'Update Medicine';
+                
+                // Re-render to show the edit form
+                renderMedicines();
+            }
+        }
+
+        // Save edited medicine
+        function saveMedicineEdit(medicineId) {
+            const medicineIndex = medicines.findIndex(m => m.id === medicineId);
+            if (medicineIndex === -1) return;
+            
+            const name = document.getElementById(`editName-${medicineId}`).value;
+            const dosage = document.getElementById(`editDosage-${medicineId}`).value;
+            const frequency = document.getElementById(`editFrequency-${medicineId}`).value;
+            const duration = parseInt(document.getElementById(`editDuration-${medicineId}`).value);
+            const setReminder = document.getElementById(`editReminder-${medicineId}`).checked;
+            
+            // For simplicity, we'll keep the original times in this example
+            // In a full implementation, you would update the times as well
+            
+            medicines[medicineIndex] = {
+                ...medicines[medicineIndex],
+                name,
+                dosage,
+                frequency,
+                duration,
+                setReminder
+            };
+            
+            saveMedicines();
+            currentlyEditing = null;
+            renderMedicines();
+            setupReminders();
+            showNotification("Medicine updated successfully");
+        }
+
+        // Cancel editing
+        function cancelEdit() {
+            currentlyEditing = null;
+            resetForm();
+            renderMedicines();
+        }
+
+        // Delete a medicine
+        function deleteMedicine(medicineId) {
+            if (confirm("Are you sure you want to delete this medicine?")) {
+                medicines = medicines.filter(m => m.id !== medicineId);
+                saveMedicines();
+                renderMedicines();
+                setupReminders();
+                showNotification("Medicine deleted successfully");
+                
+                // If we were editing this medicine, cancel editing
+                if (currentlyEditing === medicineId) {
+                    currentlyEditing = null;
+                    resetForm();
+                }
+            }
+        }
+
+        // Log a dose as taken or missed
+        function logDose(medicineId, status) {
+            const medicine = medicines.find(m => m.id === medicineId);
+            if (!medicine) return;
+            
+            const now = new Date();
+            const logEntry = {
+                date: now.toISOString(),
+                status
+            };
+            
+            medicine.logs.push(logEntry);
+            
+            if (status === 'taken') {
+                medicine.takenCount++;
+            } else {
+                medicine.missedCount++;
+            }
+            
+            saveMedicines();
+            renderMedicines();
+            
+            // Show notification
+            showNotification(`${medicine.name} marked as ${status}`);
+        }
+
+        // Set up reminder notifications
+        function setupReminders() {
+            // Clear any existing reminders
+            for (const timeoutId in reminderTimeouts) {
+                clearTimeout(timeoutId);
+            }
+            reminderTimeouts = {};
+            
+            // Set up new reminders
+            medicines.forEach(medicine => {
+                if (medicine.setReminder) {
+                    medicine.times.forEach(time => {
+                        scheduleReminder(medicine, time);
+                    });
+                }
+            });
+        }
+
+        // Schedule a reminder for a specific medicine and time
+        function scheduleReminder(medicine, timeStr) {
+            const [hours, minutes] = timeStr.split(':').map(Number);
+            const now = new Date();
+            const reminderTime = new Date();
+            
+            // Set to today's date at the specified time
+            reminderTime.setHours(hours, minutes, 0, 0);
+            
+            // If the time has already passed today, set for tomorrow
+            if (reminderTime <= now) {
+                reminderTime.setDate(reminderTime.getDate() + 1);
+            }
+            
+            const timeUntilReminder = reminderTime - now;
+            
+            // Only schedule if within the medicine's duration
+            const startDate = new Date(medicine.startDate);
+            const endDate = new Date(startDate);
+            endDate.setDate(endDate.getDate() + medicine.duration);
+            
+            if (reminderTime >= startDate && reminderTime <= endDate) {
+                const timeoutId = setTimeout(() => {
+                    showReminderNotification(medicine, timeStr);
+                    // Schedule the next reminder
+                    scheduleReminder(medicine, timeStr);
+                }, timeUntilReminder);
+                
+                reminderTimeouts[timeoutId] = true;
+            }
+        }
+
+        // Show a reminder notification
+        function showReminderNotification(medicine, timeStr) {
+            const notificationMsg = `Time to take your ${medicine.name} (${medicine.dosage}) at ${timeStr}`;
+            showNotification(notificationMsg);
+            
+            try {
+                const audio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3');
+                audio.play();
+            } catch (e) {
+                console.log("Couldn't play reminder sound");
+            }
+        }
+
+        // Show a notification
+        function showNotification(message) {
+            if (!("Notification" in window)) {
+                alert(message);
+                return;
+            }
+            
+            if (Notification.permission === "granted") {
+                new Notification(message);
+            } 
+            else if (Notification.permission !== "denied") {
+                Notification.requestPermission().then(permission => {
+                    if (permission === "granted") {
+                        new Notification(message);
+                    } else {
+                        alert(message);
+                    }
+                });
+            } else {
+                alert(message);
+            }
+        }
+
+        // Calculate total expected doses for a medicine
+        function calculateTotalDoses(medicine) {
+            const days = medicine.duration;
+            const dosesPerDay = medicine.times.length;
+            return days * dosesPerDay;
+        }
+
+        // Get the next dose time for a medicine
+        function getNextDoseTime(medicine) {
+            const now = new Date();
+            const today = new Date(now);
+            today.setHours(0, 0, 0, 0);
+            
+            // Find the next time today or tomorrow
+            for (const timeStr of medicine.times) {
+                const [hours, minutes] = timeStr.split(':').map(Number);
+                const doseTime = new Date(today);
+                doseTime.setHours(hours, minutes);
+                
+                if (doseTime > now) {
+                    return doseTime;
+                }
+            }
+            
+            // If all times have passed today, return first time tomorrow
+            const [hours, minutes] = medicine.times[0].split(':').map(Number);
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(hours, minutes);
+            return tomorrow;
+        }
+
+        // Helper function to format time
+        function formatTime(date) {
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        // Helper function to get frequency text
+        function getFrequencyText(frequency, times) {
+            if (frequency === 'once') return 'Once daily';
+            if (frequency === 'twice') return 'Twice daily';
+            if (frequency === 'thrice') return 'Three times daily';
+            return `${times.length} times daily at ${times.join(', ')}`;
+        }
+
+        // Save medicines to localStorage
+        function saveMedicines() {
+            localStorage.setItem('medicines', JSON.stringify(medicines));
+        }
+    </script>
+</body>
+</html>
